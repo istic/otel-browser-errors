@@ -39,8 +39,21 @@ describe('registerGlobalListeners', () => {
 
   it('stops reporting after the returned unregister function is called', () => {
     unregister();
-    window.dispatchEvent(new ErrorEvent('error', { error: new Error('after unregister') }));
 
-    expect(reportModule.reportError).not.toHaveBeenCalled();
+    // Our listener has been removed, so nothing on the page will catch this
+    // dispatch. Without a catch-all handler, jsdom treats the unhandled
+    // `error` event as an actual uncaught exception and propagates it up as
+    // an "Unhandled Error" at the test-run level. Register a temporary no-op
+    // handler so jsdom sees the event as handled, which keeps this assertion
+    // about our (unregistered) listener the only thing under test.
+    const noop = () => {};
+    window.addEventListener('error', noop);
+    try {
+      window.dispatchEvent(new ErrorEvent('error', { error: new Error('after unregister') }));
+
+      expect(reportModule.reportError).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener('error', noop);
+    }
   });
 });
