@@ -13,33 +13,45 @@ export { reportError } from './report';
 
 export type InitOtelBrowserErrorsConfig = {
   /** OTLP/HTTP traces endpoint. Falsy = disabled (no-op). */
-  endpoint: string | undefined;
+  endpoint?: string;
   serviceName: string;
   serviceVersion?: string;
   getContext?: ContextGetter;
 };
 
 let unregisterListeners: (() => void) | null = null;
+let previousProvider: WebTracerProvider | null = null;
 
 export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void {
   if (!config.endpoint) {
     return;
   }
 
-  const provider = new WebTracerProvider({
-    resource: resourceFromAttributes({
-      [ATTR_SERVICE_NAME]: config.serviceName,
-      ...(config.serviceVersion ? { [ATTR_SERVICE_VERSION]: config.serviceVersion } : {}),
-    }),
-    spanProcessors: [
-      new BatchSpanProcessor(new OTLPTraceExporter({ url: config.endpoint })),
-    ],
-  });
+  try {
+    previousProvider?.shutdown().catch(() => {
+      // Best-effort shutdown of the previous provider; nothing actionable if it fails.
+    });
 
-  provider.register();
+    const provider = new WebTracerProvider({
+      resource: resourceFromAttributes({
+        [ATTR_SERVICE_NAME]: config.serviceName,
+        ...(config.serviceVersion ? { [ATTR_SERVICE_VERSION]: config.serviceVersion } : {}),
+      }),
+      spanProcessors: [
+        new BatchSpanProcessor(new OTLPTraceExporter({ url: config.endpoint })),
+      ],
+    });
 
-  configureReporter(provider.getTracer('otel-browser-errors'), config.getContext);
+    provider.register();
+    previousProvider = provider;
 
-  unregisterListeners?.();
-  unregisterListeners = registerGlobalListeners();
+    configureReporter(provider.getTracer('otel-browser-errors'), config.getContext);
+
+    if (typeof window !== 'undefined') {
+      unregisterListeners?.();
+      unregisterListeners = registerGlobalListeners();
+    }
+  } catch {
+    // Never let init throw - this runs during the consuming app's boot sequence.
+  }
 }
