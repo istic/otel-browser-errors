@@ -77,4 +77,30 @@ describe('reportError', () => {
     const spans = exporter.getFinishedSpans();
     expect(spans[0].attributes.userId).toBeUndefined();
   });
+
+  it('never throws, even when the getContext callback throws', () => {
+    configureReporter(provider.getTracer('test'), () => {
+      throw new Error('context boom');
+    });
+
+    expect(() => reportError(new Error('x'))).not.toThrow();
+  });
+
+  it('handles a null error input without throwing', () => {
+    configureReporter(provider.getTracer('test'));
+
+    expect(() => reportError(null)).not.toThrow();
+
+    const spans = exporter.getFinishedSpans();
+    expect(spans[0].status.message).toBe('null');
+  });
+
+  it('handles an undefined error input without throwing', () => {
+    configureReporter(provider.getTracer('test'));
+
+    expect(() => reportError(undefined)).not.toThrow();
+
+    const spans = exporter.getFinishedSpans();
+    expect(spans[0].status.message).toBe('undefined');
+  });
 });
