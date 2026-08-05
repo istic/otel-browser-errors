@@ -27,6 +27,10 @@ export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void
     return;
   }
 
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   try {
     previousProvider?.shutdown().catch(() => {
       // Best-effort shutdown of the previous provider; nothing actionable if it fails.
@@ -47,10 +51,8 @@ export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void
 
     configureReporter(provider.getTracer('otel-browser-errors'), config.getContext);
 
-    if (typeof window !== 'undefined') {
-      unregisterListeners?.();
-      unregisterListeners = registerGlobalListeners();
-    }
+    unregisterListeners?.();
+    unregisterListeners = registerGlobalListeners();
   } catch {
     // Never let init throw - this runs during the consuming app's boot sequence.
   }

@@ -68,7 +68,8 @@ describe('initOtelBrowserErrors', () => {
     vi.stubGlobal('window', undefined);
 
     const freshListenersModule = await import('./listeners');
-    const registerSpy = vi.spyOn(freshListenersModule, 'registerGlobalListeners');
+    const registerListenersSpy = vi.spyOn(freshListenersModule, 'registerGlobalListeners');
+    const providerRegisterSpy = vi.spyOn(WebTracerProvider.prototype, 'register');
     const { initOtelBrowserErrors: freshInitOtelBrowserErrors } = await import('./index');
 
     expect(() =>
@@ -78,7 +79,10 @@ describe('initOtelBrowserErrors', () => {
       }),
     ).not.toThrow();
 
-    expect(registerSpy).not.toHaveBeenCalled();
+    expect(registerListenersSpy).not.toHaveBeenCalled();
+    // Guarantees no provider/exporter/span-processor construction happens on
+    // the server at all, not just that listener registration is skipped.
+    expect(providerRegisterSpy).not.toHaveBeenCalled();
   });
 
   it('does not throw when provider construction fails', () => {
