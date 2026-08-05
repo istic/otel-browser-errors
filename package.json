@@ -1,0 +1,50 @@
+{
+  "name": "@istic-co/otel-browser-errors",
+  "version": "0.1.0",
+  "description": "Framework-agnostic browser error/exception reporting to SigNoz via OpenTelemetry OTLP/HTTP",
+  "main": "./dist/index.cjs",
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/istic/otel-browser-errors.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/istic/otel-browser-errors/issues"
+  },
+  "homepage": "https://github.com/istic/otel-browser-errors#readme",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.221.0",
+    "@opentelemetry/resources": "^2.10.0",
+    "@opentelemetry/sdk-trace-base": "^2.10.0",
+    "@opentelemetry/sdk-trace-web": "^2.10.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.10",
+    "jsdom": "^30.0.1",
+    "tsup": "^8.5.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
