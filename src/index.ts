@@ -16,6 +16,12 @@ export type InitOtelBrowserErrorsConfig = {
   endpoint?: string;
   serviceName: string;
   serviceVersion?: string;
+  /** Matches the backend's `service.environment` resource attribute (see Dockerfile's OTEL_RESOURCE_ATTRIBUTES) so frontend and backend spans tag consistently. */
+  environment?: string;
+  /** Matches the backend's `service.revision` resource attribute (typically a PR number). */
+  revision?: string;
+  /** Matches the backend's `service.branch` resource attribute. */
+  branch?: string;
   getContext?: ContextGetter;
 };
 
@@ -40,6 +46,9 @@ export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void
       resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: config.serviceName,
         ...(config.serviceVersion ? { [ATTR_SERVICE_VERSION]: config.serviceVersion } : {}),
+        ...(config.environment ? { 'service.environment': config.environment } : {}),
+        ...(config.revision ? { 'service.revision': config.revision } : {}),
+        ...(config.branch ? { 'service.branch': config.branch } : {}),
       }),
       spanProcessors: [
         new BatchSpanProcessor(new OTLPTraceExporter({ url: config.endpoint })),

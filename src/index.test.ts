@@ -1,3 +1,4 @@
+import * as resourcesModule from '@opentelemetry/resources';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as reportModule from './report';
@@ -37,6 +38,67 @@ describe('initOtelBrowserErrors', () => {
     });
 
     expect(configureSpy).toHaveBeenCalledWith(expect.anything(), getContext);
+  });
+
+  it('sets a service.environment resource attribute when environment is provided', () => {
+    const resourceSpy = vi.spyOn(resourcesModule, 'resourceFromAttributes');
+
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+      environment: 'staging',
+    });
+
+    expect(resourceSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ 'service.environment': 'staging' }),
+    );
+  });
+
+  it('omits the service.environment resource attribute when environment is not provided', () => {
+    const resourceSpy = vi.spyOn(resourcesModule, 'resourceFromAttributes');
+
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+    });
+
+    expect(resourceSpy).toHaveBeenCalledWith(
+      expect.not.objectContaining({ 'service.environment': expect.anything() }),
+    );
+  });
+
+  it('sets service.revision and service.branch resource attributes when provided, matching the backend attribute naming', () => {
+    const resourceSpy = vi.spyOn(resourcesModule, 'resourceFromAttributes');
+
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+      revision: '123',
+      branch: 'feature/foo',
+    });
+
+    expect(resourceSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        'service.revision': '123',
+        'service.branch': 'feature/foo',
+      }),
+    );
+  });
+
+  it('omits service.revision and service.branch when not provided', () => {
+    const resourceSpy = vi.spyOn(resourcesModule, 'resourceFromAttributes');
+
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+    });
+
+    expect(resourceSpy).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        'service.revision': expect.anything(),
+        'service.branch': expect.anything(),
+      }),
+    );
   });
 
   it('shuts down the previous provider before creating a new one on repeated init', () => {
