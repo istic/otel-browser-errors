@@ -16,7 +16,7 @@ export type InitOtelBrowserErrorsConfig = {
   endpoint?: string;
   serviceName: string;
   serviceVersion?: string;
-  /** Matches the backend's `service.environment` resource attribute (see Dockerfile's OTEL_RESOURCE_ATTRIBUTES) so frontend and backend spans tag consistently. */
+  /** Matches the backend's `deployment.environment` resource attribute (see autopelago's firth_laravel_app docker-compose OTEL_RESOURCE_ATTRIBUTES, the actual live source of truth — not the Dockerfile's baked-in ENV, which real deployments override) so frontend and backend spans tag consistently. */
   environment?: string;
   /** Matches the backend's `service.revision` resource attribute (typically a PR number). */
   revision?: string;
@@ -46,7 +46,7 @@ export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void
       resource: resourceFromAttributes({
         [ATTR_SERVICE_NAME]: config.serviceName,
         ...(config.serviceVersion ? { [ATTR_SERVICE_VERSION]: config.serviceVersion } : {}),
-        ...(config.environment ? { 'service.environment': config.environment } : {}),
+        ...(config.environment ? { 'deployment.environment': config.environment } : {}),
         ...(config.revision ? { 'service.revision': config.revision } : {}),
         ...(config.branch ? { 'service.branch': config.branch } : {}),
       }),

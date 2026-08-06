@@ -40,7 +40,7 @@ describe('initOtelBrowserErrors', () => {
     expect(configureSpy).toHaveBeenCalledWith(expect.anything(), getContext);
   });
 
-  it('sets a service.environment resource attribute when environment is provided', () => {
+  it('sets a deployment.environment resource attribute when environment is provided', () => {
     const resourceSpy = vi.spyOn(resourcesModule, 'resourceFromAttributes');
 
     initOtelBrowserErrors({
@@ -50,11 +50,11 @@ describe('initOtelBrowserErrors', () => {
     });
 
     expect(resourceSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ 'service.environment': 'staging' }),
+      expect.objectContaining({ 'deployment.environment': 'staging' }),
     );
   });
 
-  it('omits the service.environment resource attribute when environment is not provided', () => {
+  it('omits the deployment.environment resource attribute when environment is not provided', () => {
     const resourceSpy = vi.spyOn(resourcesModule, 'resourceFromAttributes');
 
     initOtelBrowserErrors({
@@ -63,7 +63,7 @@ describe('initOtelBrowserErrors', () => {
     });
 
     expect(resourceSpy).toHaveBeenCalledWith(
-      expect.not.objectContaining({ 'service.environment': expect.anything() }),
+      expect.not.objectContaining({ 'deployment.environment': expect.anything() }),
     );
   });
 
