@@ -17,7 +17,7 @@ initOtelBrowserErrors({
   endpoint: import.meta.env.VITE_OTEL_EXPORTER_OTLP_ENDPOINT, // e.g. https://otlp.svc.istic.systems/v1/traces
   serviceName: 'my-app-frontend',
   serviceVersion: import.meta.env.VITE_APP_VERSION,
-  environment: import.meta.env.VITE_APP_ENV, // matches the backend's service.environment attribute
+  environment: import.meta.env.VITE_APP_ENV, // matches the backend's deployment.environment attribute
   revision: import.meta.env.VITE_APP_PR_NUMBER, // matches the backend's service.revision attribute
   branch: import.meta.env.VITE_APP_BRANCH, // matches the backend's service.branch attribute
   getContext: () => ({
