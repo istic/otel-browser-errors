@@ -147,6 +147,36 @@ describe('initOtelBrowserErrors', () => {
     expect(providerRegisterSpy).not.toHaveBeenCalled();
   });
 
+  it('flushes the provider on pagehide, so batched spans are not lost on navigation/reload', () => {
+    const flushSpy = vi.spyOn(WebTracerProvider.prototype, 'forceFlush').mockResolvedValue();
+
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+    });
+
+    window.dispatchEvent(new Event('pagehide'));
+
+    expect(flushSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops flushing the old provider on pagehide after a repeat init', () => {
+    const flushSpy = vi.spyOn(WebTracerProvider.prototype, 'forceFlush').mockResolvedValue();
+
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+    });
+    initOtelBrowserErrors({
+      endpoint: 'https://otlp.example.com/v1/traces',
+      serviceName: 'test-app',
+    });
+
+    window.dispatchEvent(new Event('pagehide'));
+
+    expect(flushSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('does not throw when provider construction fails', () => {
     vi.spyOn(WebTracerProvider.prototype, 'register').mockImplementation(() => {
       throw new Error('boom');
