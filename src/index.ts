@@ -6,6 +6,7 @@ import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions';
+import { registerFlushOnUnload } from './flush';
 import { registerGlobalListeners } from './listeners';
 import { configureReporter, type ContextGetter } from './report';
 
@@ -26,6 +27,7 @@ export type InitOtelBrowserErrorsConfig = {
 };
 
 let unregisterListeners: (() => void) | null = null;
+let unregisterFlush: (() => void) | null = null;
 let previousProvider: WebTracerProvider | null = null;
 
 export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void {
@@ -62,6 +64,9 @@ export function initOtelBrowserErrors(config: InitOtelBrowserErrorsConfig): void
 
     unregisterListeners?.();
     unregisterListeners = registerGlobalListeners();
+
+    unregisterFlush?.();
+    unregisterFlush = registerFlushOnUnload(provider);
   } catch {
     // Never let init throw - this runs during the consuming app's boot sequence.
   }
